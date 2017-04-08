@@ -42,7 +42,7 @@ def webhook():
                     recipient_id = messaging_event["recipient"]["id"]  # the recipient's ID, which should be your page's facebook ID
                     message_text = messaging_event["message"].get("text", None)  # the message's text (optional if e.g. thumb-up is sent)
 
-                    inbox.append({'sender': recipient_id, 'message': message_text})
+                    inbox.append({'sender': sender_id, 'message': message_text})
 
                     send_message(sender_id, "got it, thanks!")
 
@@ -78,7 +78,12 @@ def send_message_routed():
     recipient = data.get("to", None)
     message = data.get("message", None)
 
-    send_message(recipient, message)
+    if not recipient:
+        return "no recipient specified", 400
+
+    if send_message(recipient, message) != 200:
+        return "error sending message", 400
+
     return "ok", 200
 
 def send_message(recipient_id, message_text):
@@ -103,6 +108,8 @@ def send_message(recipient_id, message_text):
     if r.status_code != 200:
         log(r.status_code)
         log(r.text)
+
+    return r.status_code
 
 
 def log(message):  # simple wrapper for logging to stdout on heroku
