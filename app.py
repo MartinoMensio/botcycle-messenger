@@ -63,7 +63,7 @@ def pop_message():
         return "Client token mismatch", 403
 
     if len(inbox) > 0:
-        return inbox.popleft(), 200
+        return flask.jsonify(inbox.popleft()), 200
 
     return "inbox empty", 404
 
