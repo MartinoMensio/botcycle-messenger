@@ -4,7 +4,7 @@ import json
 from collections import deque
 
 import requests
-from flask import Flask, request
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
@@ -63,7 +63,7 @@ def pop_message():
         return "Client token mismatch", 403
 
     if len(inbox) > 0:
-        return flask.jsonify(inbox.popleft()), 200
+        return jsonify(inbox.popleft()), 200
 
     return "inbox empty", 404
 
