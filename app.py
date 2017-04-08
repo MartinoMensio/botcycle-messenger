@@ -1,11 +1,14 @@
 import os
 import sys
 import json
+from collections import deque
 
 import requests
 from flask import Flask, request
 
 app = Flask(__name__)
+
+inbox = []
 
 
 @app.route('/', methods=['GET'])
@@ -17,7 +20,7 @@ def verify():
             return "Verification token mismatch", 403
         return request.args["hub.challenge"], 200
 
-    return '<a href="m.me/botcycleBeta">Use me in messenger </a>', 200
+    return '<a href="https://m.me/botcycleBeta">Use me in messenger </a>', 200
 
 
 @app.route('/', methods=['POST'])
@@ -39,6 +42,8 @@ def webhook():
                     recipient_id = messaging_event["recipient"]["id"]  # the recipient's ID, which should be your page's facebook ID
                     message_text = messaging_event["message"].get("text", None)  # the message's text (optional if e.g. thumb-up is sent)
 
+                    inbox.append({'sender': recipient_id, 'message': message_text})
+
                     send_message(sender_id, "got it, thanks!")
 
                 if messaging_event.get("delivery"):  # delivery confirmation
@@ -52,6 +57,24 @@ def webhook():
 
     return "ok", 200
 
+@app.route('/pop_message', methods=['POST'])
+def pop_message():
+    if not request.args.get("client_token") == os.environ["CLIENT_TOKEN"]:
+        return "Client token mismatch", 403
+
+    if len(inbox) > 0:
+        return inbox.popleft(), 200
+
+    return "inbox empty", 404
+
+
+@app.route('/send_message', methods=['POST'])
+def send_message_routed();
+    if not request.args.get("client_token") == os.environ["CLIENT_TOKEN"]:
+        return "Client token mismatch", 403
+
+    send_message(request.args.get("to"), request.args.get("message"))
+    return "ok", 200
 
 def send_message(recipient_id, message_text):
 
