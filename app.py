@@ -59,7 +59,7 @@ def webhook():
 
 @app.route('/pop_message', methods=['POST'])
 def pop_message():
-    if not request.args.get("client_token") == os.environ["CLIENT_TOKEN"]:
+    if not request.headers("client_token", None) == os.environ["CLIENT_TOKEN"]:
         return "Client token mismatch", 403
 
     if len(inbox) > 0:
@@ -70,10 +70,15 @@ def pop_message():
 
 @app.route('/send_message', methods=['POST'])
 def send_message_routed():
-    if not request.args.get("client_token") == os.environ["CLIENT_TOKEN"]:
+    if not request.headers("client_token", None) == os.environ["CLIENT_TOKEN"]:
         return "Client token mismatch", 403
 
-    send_message(request.args.get("to"), request.args.get("message"))
+    data = request.get_json()
+
+    recipient = data.get("to", None)
+    message = data.get("message", None)
+
+    send_message(recipient, message)
     return "ok", 200
 
 def send_message(recipient_id, message_text):
