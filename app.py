@@ -8,7 +8,7 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-inbox = []
+inbox = deque()
 
 
 @app.route('/', methods=['GET'])
