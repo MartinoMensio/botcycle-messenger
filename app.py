@@ -69,7 +69,7 @@ def pop_message():
 
 
 @app.route('/send_message', methods=['POST'])
-def send_message_routed();
+def send_message_routed():
     if not request.args.get("client_token") == os.environ["CLIENT_TOKEN"]:
         return "Client token mismatch", 403
 
