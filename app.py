@@ -1,14 +1,14 @@
 import os
 import sys
 import json
-from collections import deque
+import queue
 
 import requests
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-inbox = deque()
+inbox = queue.Queue()
 
 
 @app.route('/', methods=['GET'])
@@ -42,7 +42,7 @@ def webhook():
                     recipient_id = messaging_event["recipient"]["id"]  # the recipient's ID, which should be your page's facebook ID
                     message_text = messaging_event["message"].get("text", None)  # the message's text (optional if e.g. thumb-up is sent)
 
-                    inbox.append({'sender': sender_id, 'message': message_text})
+                    inbox.put({'sender': sender_id, 'message': message_text})
 
                     send_message(sender_id, "got it, thanks!")
 
@@ -62,10 +62,10 @@ def pop_message():
     if not request.headers.get("client_token", None) == os.environ["CLIENT_TOKEN"]:
         return "Client token mismatch", 403
 
-    if len(inbox) > 0:
-        return jsonify(inbox.popleft()), 200
-
-    return "inbox empty", 404
+    try:
+        return jsonify(inbox.get(timeout=29)), 200
+    except Exception as e:
+        return "not yet", 202
 
 
 @app.route('/send_message', methods=['POST'])
